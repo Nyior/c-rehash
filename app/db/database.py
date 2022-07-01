@@ -4,7 +4,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import as_declarative, declared_attr
 from sqlalchemy.orm import sessionmaker
 
-
 # We can easily switch to mysql or postgresql
 SQLALCHEMY_DATABASE_URL = "sqlite:///./rehash_app.db"
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
@@ -23,6 +22,7 @@ class Base:
     @declared_attr
     def __tablename__(cls) -> str:
         return cls.__name__.lower()
+
 
 # Dependency
 def get_db():

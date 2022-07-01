@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends
 
-from app.services.supported_currencies import supported_currencies_service
 from app.auth.auth_bearer import JWTBearer
-
+from app.services.supported_currencies import supported_currencies_service
 
 router: APIRouter = APIRouter(prefix="/api/v1", dependencies=[Depends(JWTBearer())])
 

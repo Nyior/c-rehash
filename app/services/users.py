@@ -3,9 +3,10 @@ import logging
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from app.schemas.user import UserSchema
-from app.db.crud import get_user_by_email, create_user, get_user_by_email_password
 from app.auth.auth_handler import signJWT
+from app.db.crud import (create_user, get_user_by_email,
+                         get_user_by_email_password)
+from app.schemas.user import UserSchema
 
 
 def create_user_service(user: UserSchema, db: Session):

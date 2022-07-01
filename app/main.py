@@ -2,9 +2,8 @@ import logging
 
 from fastapi import FastAPI
 
-from app.router import convert, historical_data, supported_currencies, users
 from app.db.database import Base, engine
-
+from app.router import convert, historical_data, supported_currencies, users
 
 # Setup logging
 logger = logging.getLogger(__name__)

@@ -1,10 +1,9 @@
-from fastapi import Depends, APIRouter
+from fastapi import APIRouter, Depends
 
-from app.services.convert import currency_converter_service
-from app.schemas.convert import ConversionResultResponse, ConversionData
-from app.config.settings import Settings, get_settings
 from app.auth.auth_bearer import JWTBearer
-
+from app.config.settings import Settings, get_settings
+from app.schemas.convert import ConversionData, ConversionResultResponse
+from app.services.convert import currency_converter_service
 
 router: APIRouter = APIRouter(prefix="/api/v1", dependencies=[Depends(JWTBearer())])
 

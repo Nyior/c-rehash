@@ -1,5 +1,6 @@
-import aiohttp
 import logging
+
+import aiohttp
 
 from app.config.settings import Settings
 

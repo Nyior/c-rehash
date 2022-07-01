@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     HISTORICAL_URL: str
     SECRET: str
     ALGORITHM: str
+    ACCESS_TOKEN: str
 
     class Config:
         env_file = ".env"

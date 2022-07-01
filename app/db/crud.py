@@ -2,7 +2,6 @@
     Reusable functions for reading data from the database
 """
 import bcrypt
-
 from sqlalchemy.orm import Session
 
 from app.models.user import User

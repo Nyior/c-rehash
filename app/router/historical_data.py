@@ -1,10 +1,9 @@
-from fastapi import Depends, APIRouter
+from fastapi import APIRouter, Depends
 
-from app.services.historical_data import historical_data_service
-from app.schemas.historical_data import HistoricalData, HistoricalDataResponse
-from app.config.settings import Settings, get_settings
 from app.auth.auth_bearer import JWTBearer
-
+from app.config.settings import Settings, get_settings
+from app.schemas.historical_data import HistoricalData, HistoricalDataResponse
+from app.services.historical_data import historical_data_service
 
 router: APIRouter = APIRouter(prefix="/api/v1", dependencies=[Depends(JWTBearer())])
 

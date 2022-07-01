@@ -1,16 +1,28 @@
 from fastapi import status
 from fastapi.testclient import TestClient
 
+from app.config.settings import Settings, get_settings
 from app.main import app
 
 client = TestClient(app)
 
 BASE_URL = "/api/v1"
+settings: Settings = get_settings()
+
+
+def test_currency_converter_forbids_unauthenticated_requests():
+    response = client.post(
+        f"{BASE_URL}/currency-converter",
+        json={"from_currency": "EUR", "to_currency": "NGN", "amount": 100},
+    )
+    assert response.status_code == status.HTTP_403_FORBIDDEN
 
 
 def test_currency_converter_with_valid_input():
-    response = client.get(
-        f"{BASE_URL}/currency-converter?from_currency=EUR&to_currency=NGN&amount=100"
+    response = client.post(
+        f"{BASE_URL}/currency-converter",
+        headers={"Authorization": f"Bearer {settings.ACCESS_TOKEN}"},
+        json={"from_currency": "EUR", "to_currency": "NGN", "amount": 100},
     )
     data = response.json()
 
@@ -23,8 +35,10 @@ def test_currency_converter_with_valid_input():
 
 
 def test_currency_converter_with_invalid_from_parameter():
-    response = client.get(
-        f"{BASE_URL}/currency-converter?from_currency=EURSS&to_currency=NGN&amount=100"
+    response = client.post(
+        f"{BASE_URL}/currency-converter",
+        headers={"Authorization": f"Bearer {settings.ACCESS_TOKEN}"},
+        json={"from_currency": "EURSS", "TO_currency": "NGN", "amount": 100},
     )
     data = response.json()
 
@@ -34,7 +48,10 @@ def test_currency_converter_with_invalid_from_parameter():
 
 
 def test_supported_currencies_returns_data():
-    response = client.get(f"{BASE_URL}/supported-currencies")
+    response = client.get(
+        f"{BASE_URL}/supported-currencies",
+        headers={"Authorization": f"Bearer {settings.ACCESS_TOKEN}"},
+    )
     data = response.json()
 
     assert len(data) > 0

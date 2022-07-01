@@ -1,9 +1,9 @@
 import time
 from typing import Dict
+
 import jwt
 
 from app.config.settings import Settings, get_settings
-
 
 setting: Settings = get_settings()
 
