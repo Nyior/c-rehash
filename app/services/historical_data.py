@@ -1,11 +1,17 @@
 import logging
+import json
 
 from fastapi import HTTPException
 
 from app.config.settings import Settings
 from app.utils.api_service import currency_api_caller
 from app.utils.validator import are_valid_currencies, is_valid_date
+from app.cache.redis import redis_cache
 
+
+CACHE_KEYS = {
+    "HISTORICAL_RATES": "rates:historical_rates_{date}"
+}
 
 async def historical_data_service(
     from_currency: str, to: str, date: str, settings: Settings
@@ -25,26 +31,44 @@ async def historical_data_service(
     Returns:
     * response (dict): contains the historical data
     """
+    async def get_historical_rates(settings: Settings, url: str):
+        rates: float = await currency_api_caller(settings, url)
+        return rates.get("rates")
 
     # Check if the base & target currencies passed are supported
     if not are_valid_currencies(from_currency, to):
-        message = "Invalid base or target currency."
+        message = "base or target currency not supported."
         logging.exception(message)
         raise HTTPException(status_code=442, detail=message)
 
     # Check if the passed date is valid
     if not is_valid_date(date):
         message = "Date has to be in this format: YYYY-MM-DD." f" Got {date}"
-
         logging.exception(message)
         raise HTTPException(status_code=442, detail=message)
 
-    URL = settings.HISTORICAL_URL.format(date)
-    query_params = {"from": from_currency, "to": to}
+    # URL = settings.HISTORICAL_URL.format(date)
+    URL = settings.OPEN_API_HISTORICAL.format(date=date)
 
-    # Get historical data from external API
-    data = await currency_api_caller(settings, URL, query_params)
-    rate = data["rates"][to]["rate"]
+    rates = await redis_cache.get_key(
+        CACHE_KEYS["HISTORICAL_RATES"].format(date=date)
+    )
+
+    if rates:
+        rates = json.loads(rates.decode('utf-8'))
+        print(f"HISTORICAL RATES: {rates}")
+        logging.info("historical rates loaded from redis cache")
+    else:   
+        # Get exchange rate from external API
+        rates: float = await get_historical_rates(settings, URL)
+        await redis_cache.set_key(
+            key=CACHE_KEYS["HISTORICAL_RATES"].format(date=date), 
+            value=json.dumps(rates).encode('utf-8'), 
+            expire=10800
+        )
+        logging.info('loading rates from external api-- rates saved to redis')
+   
+    rate = rates[to]/rates[from_currency]
 
     response = {
         "from_currency": from_currency,

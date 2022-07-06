@@ -6,3 +6,4 @@ sqlalchemy==1.4.39
 PyJWT==1.7.1
 email-validator==1.2.1
 bcrypt==3.2.2
+aioredis==2.0.1

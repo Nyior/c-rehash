@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     SECRET: str
     ALGORITHM: str
     ACCESS_TOKEN: str
+    OPEN_API_HISTORICAL: str
+    OPEN_API_RATES: str
 
     class Config:
         env_file = ".env"

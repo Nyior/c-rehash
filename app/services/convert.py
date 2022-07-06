@@ -1,11 +1,16 @@
 import logging
+import json
 
 from fastapi import HTTPException
 
 from app.config.settings import Settings
 from app.utils.api_service import currency_api_caller
 from app.utils.validator import are_valid_currencies
+from app.cache.redis import redis_cache
 
+CACHE_KEYS = {
+    "RATES": "rates:exchange_rates"
+}
 
 async def currency_converter_service(
     from_currency: str, to: str, amount: float, settings: Settings
@@ -25,6 +30,9 @@ async def currency_converter_service(
     Returns:
     * response (dict): contains the converted amount, amount, to and from currencies.
     """
+    async def get_rates(settings: Settings, url: str):
+        rates: float = await currency_api_caller(settings, url)
+        return rates.get('rates')
 
     # Check if the base & target currencies passed are supported
     if not are_valid_currencies(from_currency, to):
@@ -32,13 +40,27 @@ async def currency_converter_service(
         logging.exception(message)
         raise HTTPException(status_code=442, detail=message)
 
-    URL: str = settings.EXCHANGE_URL
-    query_params: dict = {"from": from_currency, "to": to}
+    URL: str = settings.OPEN_API_RATES
 
-    # Get exchange rate for external API
-    conversion_rate: float = await currency_api_caller(settings, URL, query_params)
-    converted_amount: float = amount * float(conversion_rate)
+    # Get rates from redis cache
+    rates = await redis_cache.get_key(CACHE_KEYS["RATES"])
 
+    if rates:
+        rates = json.loads(rates.decode('utf-8'))
+        logging.info("rates loaded from redis cache")
+    else:   
+        # Get exchange rate from external API
+        rates: float = await get_rates(settings, URL)
+        await redis_cache.set_key(
+            key=CACHE_KEYS["RATES"], 
+            value=json.dumps(rates).encode('utf-8'), 
+            expire=10800
+        )
+        logging.info('loading rates from external api-- rates saved to redis')
+    
+    # converted_amount: float = amount * float(conversion_rate)
+    converted_amount: float = amount * float(rates[to]/rates[from_currency])
+    
     response: dict = {
         "from_currency": from_currency,
         "to_currency": to,

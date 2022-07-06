@@ -1,0 +1,26 @@
+version: "3"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: currency_convert_api
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - redis
+    networks:
+      - currency-convert-network
+
+  redis:
+    image: redis:6.2-alpine
+    container_name: currency_convert_redis
+    restart: always
+    networks:
+      - currency-convert-network
+
+networks:
+  currency-convert-network:
+    driver: bridge

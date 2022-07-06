@@ -5,7 +5,9 @@ import aiohttp
 from app.config.settings import Settings
 
 
-async def currency_api_caller(settings: Settings, url: str, params: dict = None):
+async def currency_api_caller(
+    settings: Settings, url: str, headers: dict = None, params: dict = None
+):
     """
     A helper function for calling the external APIs
     Moved the api-calling code to this separate function to separate concerns
@@ -15,7 +17,7 @@ async def currency_api_caller(settings: Settings, url: str, params: dict = None)
     * url (str): URL to external service
     * params (dict): query params
     """
-    headers = {"x-rapidapi-key": settings.API_KEY}
+    # headers = {"x-rapidapi-key": settings.API_KEY}
 
     try:
         logging.info(f"Request to {url} initiated.")
