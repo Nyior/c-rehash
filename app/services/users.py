@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.auth_handler import signJWT
 from app.db.crud import (create_user, get_user_by_email,
-                         get_user_by_email_password)
+                         validate_credentials)
 from app.schemas.user import UserSchema
 
 
@@ -49,9 +49,8 @@ def user_login_service(user: UserSchema, db: Session):
     Returns:
     * response (dict): contains the generated access code.
     """
-    db_user = get_user_by_email_password(db, email=user.email, password=user.password)
-    if db_user is not None:
-        response: dict = signJWT(db_user.email)
+    if validate_credentials(db, email=user.email, password=user.password):
+        response: dict = signJWT(user.email)
         return response
     else:
         response: dict = {"error": "Invalid credentials"}

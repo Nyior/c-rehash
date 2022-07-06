@@ -12,12 +12,12 @@ def get_user_by_email(db: Session, email: str):
     return db.query(User).filter(User.email == email).first()
 
 
-def get_user_by_email_password(db: Session, email: str, password: str):
-    return (
-        db.query(User)
-        .filter(User.email == email and bcrypt.checkpw(password, User.hashed_password))
-        .first()
-    )
+def validate_credentials(db: Session, email: str, password: str):
+    user = get_user_by_email(db, email)
+
+    if user and bcrypt.checkpw(password.encode(), user.hashed_password):
+        return True
+    return False
 
 
 def create_user(db: Session, user: UserSchema):
