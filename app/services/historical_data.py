@@ -5,6 +5,7 @@ from fastapi import HTTPException
 
 from app.config.settings import Settings
 from app.utils.api_service import currency_api_caller
+from app.utils.rate_limiter import request_is_limited
 from app.utils.validator import are_valid_currencies, is_valid_date
 from app.cache.redis import redis_cache
 
@@ -14,7 +15,11 @@ CACHE_KEYS = {
 }
 
 async def historical_data_service(
-    from_currency: str, to: str, date: str, settings: Settings
+    from_currency: str, 
+    to: str, 
+    date: str, 
+    settings: Settings, 
+    auth_token: str
 ):
     """
     Service for use in the currency_converter route handler.
@@ -35,6 +40,12 @@ async def historical_data_service(
         rates: float = await currency_api_caller(settings, url)
         return rates.get("rates")
 
+    # Check if user has exceeded their rate limit
+    if await request_is_limited(key=auth_token):
+        message = "Request rates exceeded."
+        logging.exception(message)
+        raise HTTPException(status_code=429, detail=message)
+
     # Check if the base & target currencies passed are supported
     if not are_valid_currencies(from_currency, to):
         message = "base or target currency not supported."
@@ -43,7 +54,7 @@ async def historical_data_service(
 
     # Check if the passed date is valid
     if not is_valid_date(date):
-        message = "Date has to be in this format: YYYY-MM-DD." f" Got {date}"
+        message = f"Date has to be in this format: YYYY-MM-DD. Got {date}"
         logging.exception(message)
         raise HTTPException(status_code=442, detail=message)
 

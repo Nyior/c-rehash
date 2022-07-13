@@ -7,9 +7,11 @@ from app.auth.auth_handler import signJWT
 from app.db.crud import (create_user, get_user_by_email,
                          validate_credentials)
 from app.schemas.user import UserSchema
+from app.utils.rate_limiter import initialize_limit
+from app.cache.redis import redis_cache
 
 
-def create_user_service(user: UserSchema, db: Session):
+async def create_user_service(user: UserSchema, db: Session):
     """
     Service for use in the signup route handler.
 
@@ -33,10 +35,14 @@ def create_user_service(user: UserSchema, db: Session):
     user = create_user(db=db, user=user)
 
     response: dict = signJWT(user.email)
+    
+    # Initialize user rate limit in redis
+    await initialize_limit(key=response.get("access_token"))
+
     return response
 
 
-def user_login_service(user: UserSchema, db: Session):
+async def user_login_service(user: UserSchema, db: Session):
     """
     Service for use in the login route handler.
 
@@ -51,6 +57,13 @@ def user_login_service(user: UserSchema, db: Session):
     """
     if validate_credentials(db, email=user.email, password=user.password):
         response: dict = signJWT(user.email)
+
+        # Initialize user rate limit in redis
+        await initialize_limit(key=response.get("access_token"))
+        limit = await redis_cache.get_key(response.get("access_token"))
+        logging.info(f"LIMIT INITIALIZED: {limit}")
+        logging.info(f"LIMIT INITIALIZED KEY: {response.get('access_token')}")
+
         return response
     else:
         response: dict = {"error": "Invalid credentials"}

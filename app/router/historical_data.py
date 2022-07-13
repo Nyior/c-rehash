@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends
+from typing import Union
+
+from fastapi import APIRouter, Depends, Header
 
 from app.auth.auth_bearer import JWTBearer
 from app.config.settings import Settings, get_settings
@@ -12,6 +14,7 @@ router: APIRouter = APIRouter(prefix="/api/v1", dependencies=[Depends(JWTBearer(
 async def historical_data(
     request_data: HistoricalData,
     settings: Settings = Depends(get_settings),
+    authorization: Union[str, None] = Header(default=None)
 ) -> HistoricalDataResponse:
     """
     Returns the exchange rate at the given date
@@ -22,6 +25,7 @@ async def historical_data(
     * date (str): date.
     * settings (Settings): houses env vars and external URLs
     """
+    authorization_token: str = authorization.split(' ')[1]
 
     # The service function does all the heavy lifting
     response = await historical_data_service(
@@ -29,6 +33,7 @@ async def historical_data(
         request_data.to_currency,
         request_data.date,
         settings,
+        auth_token=authorization_token
     )
 
     return response

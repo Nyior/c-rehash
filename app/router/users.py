@@ -9,7 +9,7 @@ router: APIRouter = APIRouter(prefix="/api/v1/user")
 
 
 @router.post("/signup")
-def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
+async def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
     """
     Signup route.
 
@@ -20,13 +20,13 @@ def create_user(user: UserSchema = Body(...), db: Session = Depends(get_db)):
     Returns:
     * response (dict): contains the generated access code.
     """
-    response = create_user_service(user=user, db=db)
+    response = await create_user_service(user=user, db=db)
     # users.append(user) # replace with db call, making sure to hash the password first
     return response
 
 
 @router.post("/login")
-def user_login(user: UserLoginSchema = Body(...), db: Session = Depends(get_db)):
+async def user_login(user: UserLoginSchema = Body(...), db: Session = Depends(get_db)):
     """
     Login route handler.
 
@@ -37,5 +37,5 @@ def user_login(user: UserLoginSchema = Body(...), db: Session = Depends(get_db))
     Returns:
     * response (dict): contains the generated access code.
     """
-    response = user_login_service(user=user, db=db)
+    response = await user_login_service(user=user, db=db)
     return response

@@ -1,5 +1,5 @@
 """
-    Reusable functions for reading data from the database
+    Reusable functions for writing/reading data to/from the database
 """
 import bcrypt
 from sqlalchemy.orm import Session

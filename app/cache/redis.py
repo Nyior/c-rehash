@@ -1,5 +1,5 @@
 from typing import Any, Optional
-import logging
+from datetime import timedelta
 
 import aioredis
 
@@ -21,7 +21,7 @@ class RedisCache:
         )
 
     async def set_key(
-        self, key: str, value: Any, expire: Optional[int] = None
+        self, key: str, value: Any, expire: Optional[timedelta] = None
     ) -> None:
         """
         Sets the value for a key in the cache.
@@ -32,11 +32,13 @@ class RedisCache:
             expire (int, optional): expire time (in seconds). Defaults to None.
         """
         # Execute SET command
-        result = await self.pool.execute_command("set", key, value)
+        result = await self.pool.execute_command("setnx", key, value)
 
         # If expire is set, execute an additional command
-        if expire is not None:
-            _ = await self.pool.execute_command("expire", key, expire)
+        if expire is not None and result:
+            _ = await self.pool.execute_command(
+                "expire", key, int(expire.total_seconds())
+            )
 
         return result
 
@@ -51,6 +53,16 @@ class RedisCache:
             str: value. Defaults to None if the key does not exist.
         """
         return await self.pool.execute_command("get", key)
+    
+    async def incr_key_val(self, key: str, value: int) -> None:
+        """
+        Increases the value of a key passed.
+
+        Args:
+            key (str): key
+            value (int): value
+        """
+        await self.pool.execute_command("incrby", key, value)
 
     async def close(self) -> None:
         """Closes pool of connections"""

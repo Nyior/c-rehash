@@ -30,7 +30,7 @@ Take the following steps to run the tests cases:
 - Also install requests `pip install requests`
 - Then run the command `pytest` in the root directory of this project. That would then run the test cases
 
-## Nice-toHaves
+## Nice-to-Haves
 Because this was a quick task, a couple of things had to be left out:
 
 - A caching mechanism just so we don't connect to the external API each time there's a request. [Redis](https://redis.io/docs/) would work great here.
