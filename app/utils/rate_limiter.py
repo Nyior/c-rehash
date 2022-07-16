@@ -22,10 +22,10 @@ async def request_is_limited(key: str) -> bool:
         return False
 
     if limit is None:
-        logging.info(f"LIMIT NOT SET OR EXPIRED. LIMIT = {limit}")
+        logging.info(f"LIMIT NOT SET OR EXPIRED. LIMIT = { limit }")
         await initialize_limit(key=key)
         return False
     
     if int(limit) <= 0:
-        logging.info(f"RATE LIMIT EXCEEDED {limit}")
+        logging.info(f"RATE LIMIT EXCEEDED { limit }")
         return True

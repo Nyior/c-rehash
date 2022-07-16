@@ -6,7 +6,7 @@ from app.config.settings import Settings
 
 
 async def currency_api_caller(
-    settings: Settings, url: str, headers: dict = None, params: dict = None
+    url: str, headers: dict = None, params: dict = None
 ):
     """
     A helper function for calling the external APIs
@@ -33,8 +33,7 @@ async def currency_api_caller(
 
     except Exception as e:
         error = f"erro: {e}"
-
-        logging.exception(error)
+        logging.exception(f"Request to {url} failed due to: {error}")
 
         response = {"error": error}
         return response

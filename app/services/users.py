@@ -9,6 +9,7 @@ from app.db.crud import (create_user, get_user_by_email,
 from app.schemas.user import UserSchema
 from app.utils.rate_limiter import initialize_limit
 from app.cache.redis import redis_cache
+from app.task.tasks import send_welcome_email
 
 
 async def create_user_service(user: UserSchema, db: Session):
@@ -38,6 +39,9 @@ async def create_user_service(user: UserSchema, db: Session):
     
     # Initialize user rate limit in redis
     await initialize_limit(key=response.get("access_token"))
+
+    # Send welcome email to user async with celery
+    send_welcome_email.delay(user.email)
 
     return response
 

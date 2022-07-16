@@ -10,9 +10,16 @@ from app.utils.validator import are_valid_currencies
 from app.utils.rate_limiter import request_is_limited
 from app.cache.redis import redis_cache
 
+
 CACHE_KEYS = {
     "RATES": "rates:exchange_rates"
 }
+
+
+async def get_rates(url: str):
+        rates: float = await currency_api_caller(url)
+        return rates.get('rates')
+
 
 async def currency_converter_service(
     from_currency: str, 
@@ -35,9 +42,6 @@ async def currency_converter_service(
     Returns:
     * response (dict): contains the converted amount, amount, to and from currencies.
     """
-    async def get_rates(settings: Settings, url: str):
-        rates: float = await currency_api_caller(settings, url)
-        return rates.get('rates')
 
     # Check if user has exceeded their rate limit
     if await request_is_limited(key=auth_token):
@@ -61,7 +65,7 @@ async def currency_converter_service(
         logging.info("rates loaded from redis cache")
     else:   
         # Get exchange rate from external API
-        rates: float = await get_rates(settings, URL)
+        rates: float = await get_rates(URL)
         await redis_cache.set_key(
             key=CACHE_KEYS["RATES"], 
             value=json.dumps(rates).encode('utf-8'), 

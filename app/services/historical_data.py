@@ -36,8 +36,8 @@ async def historical_data_service(
     Returns:
     * response (dict): contains the historical data
     """
-    async def get_historical_rates(settings: Settings, url: str):
-        rates: float = await currency_api_caller(settings, url)
+    async def get_historical_rates(url: str):
+        rates: float = await currency_api_caller(url)
         return rates.get("rates")
 
     # Check if user has exceeded their rate limit
@@ -71,7 +71,7 @@ async def historical_data_service(
         logging.info("historical rates loaded from redis cache")
     else:   
         # Get exchange rate from external API
-        rates: float = await get_historical_rates(settings, URL)
+        rates: float = await get_historical_rates(URL)
         await redis_cache.set_key(
             key=CACHE_KEYS["HISTORICAL_RATES"].format(date=date), 
             value=json.dumps(rates).encode('utf-8'), 
